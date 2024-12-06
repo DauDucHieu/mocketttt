@@ -1,0 +1,16 @@
+[
+  {
+    "imagePath": "/Users/dauduchieu/Desktop/Face-Detection-JavaScript/_App/uploads/image_1733477153286.png",
+    "text": "ohh",
+    "front": true,
+    "expressions": "surprised",
+    "timestamp": 1733477153290
+  },
+  {
+    "imagePath": "/Users/dauduchieu/Desktop/Face-Detection-JavaScript/_App/uploads/image_1733478476792.png",
+    "text": "",
+    "front": true,
+    "expressions": "happy",
+    "timestamp": 1733478476795
+  }
+]

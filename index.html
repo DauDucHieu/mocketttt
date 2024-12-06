@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css"
+        integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="manifest" href="./manifest.json" />
+    <style>
+        .container {
+
+            height: 700px;
+            width: 400px;
+
+            border: 1px solid;
+
+        }
+
+        .scroll-pages,
+        .scroll-pages--vertical,
+        .scroll-pages--horizontal {
+            width: 100%;
+            height: 100%;
+            scrollbar-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: aqua;
+            overflow: scroll;
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+        }
+
+        .scroll-pages::-webkit-scrollbar,
+        .scroll-pages--vertical::-webkit-scrollbar,
+        .scroll-pages--horizontal::-webkit-scrollbar {
+            width: 0;
+        }
+
+        .scroll-pages--horizontal {
+            flex-direction: row;
+            scroll-snap-type: x mandatory;
+        }
+
+        .page {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: center;
+            flex: none;
+        }
+
+
+
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            background-color: beige;
+        }
+
+        .container {
+            height: 100%;
+            width: 100%;
+            background-color: bisque;
+            position: relative;
+        }
+
+        #video {
+            background-color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .video-front {
+            transform: scaleX(-1);
+        }
+
+        .btn-take {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translate(-50%, 0);
+            height: 100px;
+            width: 100px;
+            background-color: transparent;
+            border-radius: 50%;
+            --btn-color: yellow;
+            border: 5px solid var(--btn-color);
+
+        }
+
+        .btn-take i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: yellow;
+        }
+
+        .show-image {
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+
+        .show-image img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .show-image input {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translate(-50%, 0);
+            outline: none;
+            background-color: #ffffff96;
+            border: none;
+            border-radius: 50px;
+            width: 200px;
+            padding: 15px 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <video id="video" autoplay mute width="100" height="100" playsinline="true"
+            style="border: 1px solid black"></video>
+        <div class="btn-take" id="take-btn">
+            <i class="fa-solid fa-face-smile"></i>
+        </div>
+
+        <div class="show-image hidden">
+            <img id="snapshot" alt="Snapshot" />
+
+            <input type="text" id="text" placeholder="Status">
+            <div class="btn-take" id="check-btn">
+                <i class="fa-solid fa-circle-check icon-ok"></i>
+                <i class="fa-solid fa-times-circle icon-ko hidden"></i>
+            </div>
+        </div>
+
+        <div class="hidden scroll-pages--vertical image-list" style="height: 100%; width: 100%;">
+
+            <div class="page image-item">
+                image item1
+            </div>
+
+            <div class="page image-item">
+                image item2
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+    <script>
+
+        function run() {
+            let expressions = ""
+
+            const video = document.getElementById("video");
+
+            let currentStream = null;
+            const cameraType = {
+                front: "user",
+                back: "environment",
+            };
+            let currentCameraType = cameraType.front;
+
+            async function startCamera(facingMode) {
+                if (!navigator.mediaDevices.getUserMedia) return;
+                try {
+                    const constraints = { video: { facingMode: facingMode } };
+                    if (currentStream) stopCamera();
+                    currentStream = await navigator.mediaDevices.getUserMedia(
+                        constraints
+                    );
+
+                    if (facingMode === cameraType.front)
+                        video.classList.add("video-front");
+                    else video.classList.add("video-front");
+
+                    currentCameraType = facingMode;
+
+                    video.srcObject = currentStream;
+                } catch (err) {
+                    alert("Error when start camera!");
+                    console.log(err);
+                }
+            }
+
+            function stopCamera() {
+                if (currentStream) {
+                    const tracks = currentStream.getTracks();
+                    tracks.forEach((track) => {
+                        track.stop();
+                    });
+
+                    video.srcObject = null;
+                    currentStream = null;
+                }
+            }
+
+            function toogleCamera() {
+                stopCamera();
+                if (currentCameraType == cameraType.front) {
+                    startCamera(cameraType.back);
+                } else {
+                    startCamera(cameraType.front);
+                }
+            }
+
+            startCamera(cameraType.front);
+
+            video.ondblclick = () => {
+                toogleCamera();
+            };
+
+            const canvas = document.createElement("canvas");
+            const snapshot = document.getElementById("snapshot");
+            const showImage = document.querySelector(".show-image");
+
+            const takeBtn = document.getElementById("take-btn");
+
+            async function getAllImage(callback) {
+                try {
+                    // Fetch data from the server
+                    const response = await fetch('/getAllImages');
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        console.log(data)
+                        if (callback) callback(data)
+                    } else {
+                        console.error('Error fetching images:', data.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+
+            getAllImage();
+
+            takeBtn.onclick = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                // Vẽ khung hình hiện tại từ video lên canvas
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Lấy URL của ảnh từ canvas
+                const imageDataURL = canvas.toDataURL("image/png");
+
+                // Hiển thị ảnh trong thẻ <img>
+                snapshot.src = imageDataURL;
+
+                // Tắt camera và ẩn các phần tử không cần thiết
+                stopCamera();
+                takeBtn.classList.add("hidden"); // Ẩn nút chụp ảnh
+                video.classList.add("hidden"); // Ẩn video stream
+                showImage.classList.remove("hidden"); // Hiển thị ảnh chụp
+
+                if (currentCameraType = cameraType.front) {
+                    snapshot.classList.add("video-front")
+                }
+
+
+                const checkBtn = document.getElementById("check-btn")
+                let isCheck = true;
+                async function onCheckBtnClick() {
+                    if (isCheck) {
+                        try {
+                            const response = await fetch('/upload', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    image: imageDataURL,
+                                    text: document.getElementById('text').value,
+                                    front: currentCameraType === cameraType.front ? true : false,
+                                    expressions: expressions
+                                }),
+                            });
+
+                            const result = await response.json();
+                            console.log('Server response:', result);
+                        } catch (error) {
+                            console.error('Error sending image to server:', error);
+                        }
+                    } else {
+                        getAllImage();
+                        takeBtn.classList.remove("hidden"); // Ẩn nút chụp ảnh
+                        video.classList.remove("hidden"); // Ẩn video stream
+                        showImage.classList.add("hidden"); // Hiển thị ảnh chụp
+                        startCamera(currentCameraType);
+                    }
+                }
+
+                function onCheckBtnLongClick() {
+                    if (isCheck) {
+                        document.querySelector('.icon-ok').classList.add('hidden')
+                        document.querySelector('.icon-ko').classList.remove('hidden')
+                        isCheck = !isCheck;
+                    } else {
+                        document.querySelector('.icon-ko').classList.add('hidden')
+                        document.querySelector('.icon-ok').classList.remove('hidden')
+                        isCheck = !isCheck;
+                    }
+                }
+
+                const longClickThreshold = 1000;
+                let timer = null;
+
+                checkBtn.ondblclick = () => {
+                    onCheckBtnClick();
+                };
+                checkBtn.onmousedown = startLongClick;
+                checkBtn.ontouchstart = startLongClick;
+
+                checkBtn.onmouseup = endLongClick;
+                checkBtn.ontouchend = endLongClick;
+
+                function startLongClick() {
+                    timer = setTimeout(() => {
+                        onCheckBtnLongClick();
+                        timer = null;
+                    }, longClickThreshold);
+                }
+
+                function endLongClick() {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+
+            }
+
+            video.addEventListener('play', () => {
+                const canvas = faceapi.createCanvasFromMedia(video)
+                document.body.append(canvas)
+                const displaySize = { width: video.width, height: video.height }
+                faceapi.matchDimensions(canvas, displaySize)
+                const it = setInterval(async () => {
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions()
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize)
+                    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+                    // faceapi.draw.drawDetections(canvas, resizedDetections)
+                    // faceapi.draw.drawFaceLandmarks(canvas, resizedDetections)
+                    // faceapi.draw.drawFaceExpressions(canvas, resizedDetections)
+
+                    const data = await detections[0]
+
+                    if (data) {
+                        const exps = await detections[0].expressions
+                        let max = -1;
+                        let e = ""
+
+                        const keys = Object.keys(exps)
+
+                        keys.forEach(k => {
+                            if (exps[k] > max) {
+                                max = exps[k];
+                                e = k
+                            }
+                        })
+
+                        console.clear()
+                        console.log(e)
+                        expressions = e
+
+                        const takeBtn = document.getElementById("take-btn");
+                        const icon = takeBtn.querySelector("i");
+
+                        switch (e) {
+                            case 'happy':
+                                icon.className = "fa-solid fa-face-grin"; // Happy icon
+                                break;
+                            case 'sad':
+                                icon.className = "fa-solid fa-face-sad-tear"; // Sad icon
+                                break;
+                            case 'angry':
+                                icon.className = "fa-solid fa-face-angry"; // Angry icon
+                                break;
+                            case 'surprised':
+                                icon.className = "fa-solid fa-face-surprise"; // Surprised icon
+                                break;
+                            default:
+                                icon.className = "fa-solid fa-face-smile"; // Default smile icon
+                        }
+
+                    }
+
+                }, 100)
+            })
+
+            let longClickTimeout;
+            const longClickDuration = 3000; // Thời gian nhấn giữ (1 giây)
+
+            function startLongClickDetection() {
+                // Bắt sự kiện chuột và cảm ứng
+                video.addEventListener("mousedown", onMouseDown);
+                video.addEventListener("mouseup", onMouseUp);
+                video.addEventListener("mouseleave", onMouseUp);
+
+                video.addEventListener("touchstart", onMouseDown);
+                video.addEventListener("touchend", onMouseUp);
+                video.addEventListener("touchcancel", onMouseUp);
+            }
+
+            async function renderAllImage() {
+                takeBtn.classList.add("hidden"); // Ẩn nút chụp ảnh
+                video.classList.add("hidden"); // Ẩn video stream
+                // showImage.classList.remove("hidden"); // Hiển thị ảnh chụp
+                const listHtml = document.querySelector('.image-list')
+                listHtml.classList.remove('hidden')
+
+                stopCamera();
+                getAllImage(data => {
+                    console.log(data)
+                    listHtml.innerHTML = data.map(i => {
+                        return `
+                            <div class="page image-item">
+                                <img src="${i.imagePath}" alt="Snapshot" />
+                            </div>
+                        `
+                    }).join('')
+                })
+            }
+
+            function onMouseDown(event) {
+                event.preventDefault(); // Ngăn không cho sự kiện mặc định xảy ra (cho touch)
+                longClickTimeout = setTimeout(() => {
+                    // Đoạn mã này sẽ được thực thi khi nhấn giữ quá 1 giây
+                    console.log("Long click detected on video");
+                    // Thực hiện hành động bạn muốn khi long click
+
+                    renderAllImage();
+
+                    // alert('ok')
+                }, longClickDuration);
+            }
+
+            function onMouseUp(event) {
+                // Hủy bỏ việc nhận diện long click nếu người dùng thả chuột sớm hoặc kết thúc cảm ứng
+                clearTimeout(longClickTimeout);
+            }
+
+            // Khởi động nhận diện long click
+            startLongClickDetection();
+
+        }
+
+        Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+            faceapi.nets.faceExpressionNet.loadFromUri('/models')
+        ]).then(run)
+
+
+    </script>
+</body>
+
+</html>
